@@ -1,0 +1,90 @@
+# Robot parameters
+robot:
+  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
+  max_translation: 0.01
+  max_yaw_rotation: 0.10
+  max_force: 100
+  discrete: False
+  step_size: 0.01 #For discrete action space
+  yaw_step: 0.1
+  # include_robot_height: True
+  
+
+# Experimental setup parameters
+scene:
+  data_set: random_urdfs
+
+# Simulation parameters
+simulation:
+  real_time: False
+  visualize: False
+
+sensor:
+  camera_info: config/camera_info.yaml
+  transform: config/camera_transform.yaml
+  encoder_dir: encoder_files/
+  visualize: False
+
+# Reward function parameters
+reward:
+  shaped: True
+  terminal_reward: 10.
+  grasp_reward: 1.
+  delta_z_scale: 1000.
+  time_penalty: 1000.
+
+# Workspace curriculum parameters
+curriculum:
+  init_lambda: 0.
+  n_steps: 8
+  success_threshold: 0.7
+  window_size: 200
+  extent: [0.01, 0.1]
+  robot_height: [0.11, 0.25]
+  lift_dist: [0.01, 0.1]
+  max_objects: [3, 5]
+
+# Generate new initial states until at least on object is within the FOV
+skip_empty_initial_state: True
+
+# Use simplified problem formulation
+simplified: False
+# Depth + Actuator
+depth_observation: True
+# RGB + Depth + Actuator
+full_observation: False
+# Markov decision process parameters
+discount_factor: 0.99
+time_horizon: 150
+
+SAC:
+  max_iters: 400
+  batch_size: 64
+  step_size: 0.001
+  buffer_size: 1000000
+  tensorboard_logs: tensorboard_logs/sac2m_depth_obs
+  total_timesteps: 2000000
+  save_dir: trained_models/sac2m_depth_obs
+
+DQN:
+  learning_rate: 0.001
+  batch_size: 32
+  tensorboard_logs: tensorboard_logs/DQN4mFull
+  save_dir: trained_models/DQN4mFull
+  total_timesteps: 4000000
+  prioritized_replay: True
+
+BDQ:
+  learning_rate: 0.0001
+  prioritized_replay: True 
+  batch_size: 32
+  buffer_size: 1000000
+  epsilon_greedy: True 
+  exploration_fraction: 0.1
+  exploration_final_eps: 0.02 
+  num_actions_pad: 33
+  learning_starts: 1000
+  target_network_update_freq: 1000
+  total_timesteps: 5000000
+  tensorboard_logs: tensorboard_logs/BDQ5mFull
+  save_dir: trained_models/BDQ5mFull

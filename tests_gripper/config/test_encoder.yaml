@@ -1,0 +1,82 @@
+# Robot parameters
+robot:
+  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
+  max_translation: 0.01
+  max_yaw_rotation: 0.15
+  max_force: 100
+  discrete: False
+  step_size: 0.03 #For discrete action space
+  yaw_step: 0.25
+  num_actions_pad: 2
+  # include_robot_height: True
+  
+
+# Experimental setup parameters
+scene:
+  model_path: models/
+  data_set: random_urdfs
+
+# Simulation parameters
+simulation:
+  real_time: False
+  visualize: False
+
+sensor:
+  camera_info: config/camera_info.yaml
+  transform: config/camera_transform.yaml
+  encoder_dir: encoder_files/
+  visualize: False
+
+# Camera sensor parameters
+# sensor:
+#   camera_info: calib/pico_flexx_cropped.yaml
+#   transform: calib/T_gripper_r_base_pico_flexx_optical_frame.yaml 
+
+#   encoder_dir: ~/Data/encoder/ #~/Data/encoders/setup_0/01
+#   visualize: False
+
+# Reward function parameters
+reward:
+  custom: False
+  shaped: True
+  terminal_reward: 10.
+  grasp_reward: 1.
+  delta_z_scale: 1000.
+  time_penalty: 100
+
+
+# Workspace curriculum parameters
+curriculum:
+  init_lambda: 0.
+  n_steps: 8
+  success_threshold: 0.7
+  window_size: 1000
+  extent: [0.01, 0.1]
+  robot_height: [0.18, 0.3]
+  lift_dist: [0.01, 0.1]
+  max_objects: [3, 5]
+
+# Generate new initial states until at least on object is within the FOV
+skip_empty_initial_state: False
+
+# Use simplified problem formulation
+simplified: False
+depth_observation: False
+
+# Markov decision process parameters
+discount_factor: 0.99
+time_horizon: 150
+
+# # Policy parameters
+# policy:
+#   hidden_sizes: [200, 200]
+#   # load: /path/to/pretrained/model
+
+# # Training parameters
+# trpo:
+#   max_iters: 400
+#   batch_size: 20000
+#   step_size: 0.01
+
+# # Global seed
+# seed: 0

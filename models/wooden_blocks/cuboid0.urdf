@@ -1,0 +1,31 @@
+<?xml version="0.0" ?>
+<robot name="cuboid0">
+  <link name="baseLink">
+    <contact>
+      <lateral_friction value="1.0"/>
+      <rolling_friction value="0.0"/>
+      <contact_cfm value="0.0"/>
+      <contact_erp value="1.0"/>
+    </contact>
+    <inertial>
+      <mass value="0.035"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="5.25e-06" ixy="0" ixz="0" iyy="1.31e-5" iyz="0" izz="1.31e-5"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/cuboid0.obj"/>
+      </geometry>
+      <material name="white">
+        <color rgba="0.1 0.5 0.8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/cuboid0.obj"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

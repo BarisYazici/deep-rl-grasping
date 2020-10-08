@@ -1,0 +1,3 @@
+[submodule "bdq_sb"]
+	path = bdq_sb
+	url = https://github.com/BarisYazici/bdq_sb.git

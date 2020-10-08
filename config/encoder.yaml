@@ -1,0 +1,11 @@
+# Encoder parameters
+network: [
+  {filters: 32, kernel_size: 7, strides: 2},
+  {filters: 32, kernel_size: 5, strides: 2},
+  {filters: 32, kernel_size: 3, strides: 2}
+]
+encoding_dim: 100
+learning_rate: 0.0002
+batch_size: 128
+epochs: 120
+data_path: ~/ActionBranchingDQN/new_gripper_onfloor_imgs.pkl

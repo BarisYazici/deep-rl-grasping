@@ -1,0 +1,122 @@
+
+# Simulation parameters
+simulation:
+  real_time: False
+  visualize: False
+
+# Experimental setup parameters
+scene:
+  scene_type: "OnFloor"
+  model_path: models
+  data_set: random_urdfs
+
+# Robot parameters
+robot:
+  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
+  max_translation: 0.03 # 0.01
+  max_yaw_rotation: 0.15 # 0.15
+  discrete: True
+  step_size: 0.01 #For discrete action space
+  yaw_step: 0.15
+  max_force: 100
+  num_actions_pad: 33
+
+# Camera sensor parameters
+sensor:
+  camera_info: config/camera_info.yaml
+  transform: config/camera_transform.yaml
+  encoder_dir: encoder_files/new_gripper_encoder
+  visualize: False
+
+  # Randomize camera parameters
+  randomize:
+    focal_length: 4
+    optical_center: 2
+    translation: 0.002
+    rotation: 0.0349
+
+#Reward params for simplified
+reward:
+  stalled: True
+
+# Workspace curriculum parameters
+curriculum:
+  init_lambda: 0.
+  n_steps: 4
+  success_threshold: 0.7
+  window_size: 1000
+  extent: [0.01, 0.1]
+  robot_height: [0.17, 0.27]
+  max_objects: [3, 5]
+
+# Generate new initial states until at least on object is within the FOV
+skip_empty_initial_state: True
+
+# Use simplified problem formulation
+simplified: True
+
+# Depth + Actuator
+depth_observation: False
+# RGB + Depth + Actuator
+full_observation: False
+
+# Markov decision process parameters
+discount_factor: 0.99 #1.
+time_horizon: 150 #Time horizon cannot be smaller than the {(max_robot_height - 0.07) / 0.005}
+
+normalize: False
+
+# Training parameters
+TRPO:
+  max_iters: 400
+  batch_size: 20000
+  step_size: 0.01
+  tensorboard_logs: tensorboard_logs/trpo_1m
+  save_dir: trpo_1m
+  total_timesteps: 1000000
+
+SAC:
+  max_iters: 400
+  batch_size: 64
+  buffer_size: 50000
+  step_size: 0.0003
+  layers: [64, 64]
+  tensorboard_logs: !!null
+  total_timesteps: 1000000
+  save_dir: sac_3e3_1m
+
+PPO:
+  learning_rate: 0.001
+  save_dir: ppo_5m
+  tensorboard_logs: tensorboard_logs/ppo_5m
+  total_timesteps: 1000000
+  n_steps: 2000
+
+DQN:
+  learning_rate: 0.001
+  batch_size: 32
+  tensorboard_logs: !!null
+  save_dir: DQN4mSimplified
+  total_timesteps: 4000000
+  prioritized_replay: True
+
+DDPG:
+  save_dir: DDPG
+  tensorboard_logs: DDPG
+  total_timesteps: 2000000
+
+BDQ:
+  learning_rate: 0.0001
+  prioritized_replay: True 
+  batch_size: 64
+  layers: [[64, 64], [32], [32]] #[[512, 256], [128], [128]] 
+  buffer_size: 1000000
+  epsilon_greedy: true
+  exploration_fraction: 0.1 # 0.1
+  exploration_final_eps: 0.1 #0.02
+  num_actions_pad: 16
+  learning_starts: 1000
+  target_network_update_freq: 1000
+  total_timesteps: 4000000
+  tensorboard_logs: !!null #tensorboard_logs/BDQ1mSimplified
+  save_dir: BDQ1mSimplified

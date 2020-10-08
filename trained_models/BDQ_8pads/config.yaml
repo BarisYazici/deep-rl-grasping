@@ -1,0 +1,62 @@
+BDQ:
+  batch_size: 64
+  buffer_size: 1000000
+  epsilon_greedy: true
+  exploration_final_eps: 0.1
+  exploration_fraction: 0.1
+  layers:
+  - [64, 64]
+  - [32]
+  - [32]
+  learning_rate: 0.0001
+  learning_starts: 1000
+  num_actions_pad: 8
+  prioritized_replay: true
+  save_dir: BDQ_simple/BDQ_simple_8pads
+  target_network_update_freq: 1000
+  tensorboard_logs: null
+  total_timesteps: 4000000
+DDPG: {save_dir: DDPG, tensorboard_logs: DDPG, total_timesteps: 2000000}
+DQN: {batch_size: 32, learning_rate: 0.001, prioritized_replay: true, save_dir: DQN4mSimplified,
+  tensorboard_logs: null, total_timesteps: 4000000}
+PPO: {learning_rate: 0.001, n_steps: 2000, save_dir: ppo_5m, tensorboard_logs: tensorboard_logs/ppo_5m,
+  total_timesteps: 1000000}
+SAC:
+  batch_size: 64
+  buffer_size: 50000
+  layers: [64, 64]
+  max_iters: 400
+  save_dir: sac_3e3_1m
+  step_size: 0.0003
+  tensorboard_logs: tensorboard_logs/sac_3e4_1m
+  total_timesteps: 1000000
+TRPO: {batch_size: 20000, max_iters: 400, save_dir: trpo_1m, step_size: 0.01, tensorboard_logs: tensorboard_logs/trpo_1m,
+  total_timesteps: 1000000}
+algorithm: bdq
+curriculum:
+  extent: [0.01, 0.1]
+  init_lambda: 0.0
+  max_objects: [3, 5]
+  n_steps: 4
+  robot_height: [0.17, 0.27]
+  success_threshold: 0.7
+  window_size: 1000
+depth_observation: false
+discount_factor: 0.99
+full_observation: false
+normalize: false
+reward: {stalled: true}
+robot: {discrete: false, max_force: 100, max_translation: 0.03, max_yaw_rotation: 0.15,
+  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf, num_actions_pad: 4,
+  step_size: 0.01, yaw_step: 0.15}
+scene: {data_set: random_urdfs, model_path: models, scene_type: OnFloor}
+sensor:
+  camera_info: config/camera_info.yaml
+  encoder_dir: encoder_files/new_gripper_encoder
+  randomize: {focal_length: 4, optical_center: 2, rotation: 0.0349, translation: 0.002}
+  transform: config/camera_transform.yaml
+  visualize: false
+simplified: true
+simulation: {real_time: false, visualize: false}
+skip_empty_initial_state: true
+time_horizon: 150

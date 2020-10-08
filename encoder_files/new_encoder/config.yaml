@@ -1,0 +1,9 @@
+batch_size: 128
+data_path: ~/ActionBranchingDQN/encoder_imgs
+encoding_dim: 100
+epochs: 120
+learning_rate: 0.0002
+network:
+- {filters: 32, kernel_size: 7, strides: 2}
+- {filters: 32, kernel_size: 5, strides: 2}
+- {filters: 32, kernel_size: 3, strides: 2}
