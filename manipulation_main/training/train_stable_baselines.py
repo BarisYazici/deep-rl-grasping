@@ -86,7 +86,7 @@ def run(args):
     task = DummyVecEnv([lambda: gym.make('gripper-env-v0', config=config, evaluate=True, test=args.test)])
 
     if normalize:
-        task = VecNormalize(task, training=False, norm_obs=False, norm_reward=True,
+        task = VecNormalize(task, training=False, norm_obs=True, norm_reward=True,
                             clip_obs=10.)
         task = VecNormalize.load(os.path.join(top_folder_str, 'vecnormalize.pkl'), task)
         

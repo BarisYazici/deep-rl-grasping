@@ -10,13 +10,13 @@ from base_callbacks import EvalCallback, TrainingTimeCallback, SaveVecNormalizeC
 
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.deepq.policies import MlpPolicy as DQNMlpPolicy
-from stable_baselines.bdq.policies import ActionBranching
 from stable_baselines.common import set_global_seeds
 
 from stable_baselines.sac.policies import MlpPolicy as sacMlp
 from stable_baselines.sac.policies import CnnPolicy as sacCnn
-from stable_baselines.bdq.policies import LnMlpActPolicy, MlpActPolicy, CnnActPolicy
-from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
+from stable_baselines.sac.policies import LnCnnPolicy as sacLnCnn
+from stable_baselines.common.policies import MlpPolicy, CnnPolicy
+from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize, VecFrameStack
 from stable_baselines.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
 
@@ -40,6 +40,7 @@ class TensorboardCallback(BaseCallback):
     def _on_step(self) -> bool:
         # Log additional tensor
         history = self.task.get_attr("history")[0]
+        rew = self.task.get_attr("episode_rewards")[0]
         sr = self.task.get_attr("sr_mean")[0]
         curr = self.task.get_attr("curriculum")[0]
 
@@ -79,29 +80,39 @@ class SBPolicy:
                                     deterministic=True, render=False)
         checkpoint_callback = CheckpointCallback(save_freq=25000, save_path=self.model_dir+'/logs/',
                                          name_prefix='rl_model')
+        time_callback = TrainingTimeCallback()
         tensorboard_file = None if self.config[self.algo]['tensorboard_logs'] is None else "tensorboard_logs/"+self.model_dir
         if self.algo == 'SAC':
             if not self.env.envs[0].is_simplified() and (self.env.envs[0].depth_obs or self.env.envs[0].full_obs):
                 policy_kwargs = {
+                    "layers": self.config[self.algo]['layers'],
                     "cnn_extractor": custom_obs_policy.create_augmented_nature_cnn(1)}
                 policy = sacCnn
-            elif self.env.envs[0].is_simplified() and (self.env.envs[0].depth_obs or self.env.envs[0].full_obs):
+            elif self.env.envs[0].depth_obs or self.env.envs[0].full_obs:
                 policy_kwargs = {}
                 policy = sacCnn
             else:
                 policy_kwargs = {"layers": self.config[self.algo]['layers'], "layer_norm": False}
                 policy = sacMlp
             if self.load_dir:
+                top_folder_idx = self.load_dir.rfind('/')
+                top_folder_str = self.load_dir[0:top_folder_idx]
+                if self.norm:
+                    self.env = VecNormalize(self.env, training=True, norm_obs=False, norm_reward=False,
+                                            clip_obs=10.)
+                    self.env = VecNormalize.load(os.path.join(top_folder_str, 'vecnormalize.pkl'), self.env)
                 model = sb.SAC(policy,
                             self.env,
+                            policy_kwargs=policy_kwargs,
                             verbose=1,
                             gamma=self.config['discount_factor'],
+                            buffer_size=self.config[self.algo]['buffer_size'],
                             batch_size=self.config[self.algo]['batch_size'],
                             learning_rate=self.config[self.algo]['step_size'],
                             tensorboard_log=tensorboard_file)
                 model_load = sb.SAC.load(self.load_dir, self.env)
                 params = model_load.get_parameters()
-                model.load_parameters(params)
+                model.load_parameters(params, exact_match=False)
             else:
                 if self.norm:
                     self.env = VecNormalize(self.env, norm_obs=True, norm_reward=True,
@@ -114,7 +125,6 @@ class SBPolicy:
                             buffer_size=self.config[self.algo]['buffer_size'],
                             batch_size=self.config[self.algo]['batch_size'],
                             learning_rate=self.config[self.algo]['step_size'],
-                            log_dir=self.model_dir,
                             tensorboard_log=tensorboard_file)
         elif self.algo == 'TRPO':
             model = sb.TRPO(MlpPolicy, 
@@ -125,52 +135,22 @@ class SBPolicy:
                             vf_stepsize=self.config[self.algo]['step_size'],
                             tensorboard_log=tensorboard_file)
         elif self.algo == 'PPO':
-            # if self.vec:
-            #     num_cpu = 4  # Number of processes to use
-            #     # Create the vectorized environment
-            #     self.env = SubprocVecEnv([make_env(self.env, i, self.config) for i in range(num_cpu)])
-            # else: self.env = DummyVecEnv([lambda: self.env])
+            if not self.env.envs[0].is_simplified() and (self.env.envs[0].depth_obs or self.env.envs[0].full_obs):
+                policy_kwargs = {
+                    "layers": self.config[self.algo]['layers'],
+                    "cnn_extractor": custom_obs_policy.create_augmented_nature_cnn(1)}
+                policy = CnnPolicy
+            elif self.env.envs[0].depth_obs or self.env.envs[0].full_obs:
+                policy_kwargs = {}
+                policy = CnnPolicy
+            else:
+                policy_kwargs = {"layers": self.config[self.algo]['layers'], "layer_norm": False}
+                policy = MlpPolicy
             model = sb.PPO2(MlpPolicy, 
                             self.env, 
                             verbose=2,
                             gamma=self.config['discount_factor'],
-                            n_steps=self.config[self.algo]['n_steps'],
-                            tensorboard_log=tensorboard_file)
-        elif self.algo == 'BDQ':
-            if not self.env.envs[0].is_simplified() and (self.env.envs[0].depth_obs or self.env.envs[0].full_obs):
-                policy_kwargs = {
-                    "cnn_extractor": custom_obs_policy.create_augmented_nature_cnn(1)}
-                policy = CnnActPolicy
-            elif self.env.envs[0].is_simplified() and (self.env.envs[0].depth_obs or self.env.envs[0].full_obs):
-                policy_kwargs = {}
-                policy = CnnActPolicy
-            else:
-                policy_kwargs = {"layers": self.config[self.algo]['layers']}
-                # policy = MlpActPolicy
-                policy = LnMlpActPolicy
-
-            if self.norm:
-                self.env = VecNormalize(self.env, norm_obs=True, norm_reward=True,
-                                            clip_obs=10.)
-            if self.load_dir:
-                model = self.load_params_bdq()
-            else:
-                model = sb.BDQ(policy,
-                            self.env,
-                            verbose=2,
-                            policy_kwargs=policy_kwargs,
-                            gamma=self.config['discount_factor'],
-                            batch_size=self.config[self.algo]['batch_size'],
-                            buffer_size=self.config[self.algo]['buffer_size'],
-                            epsilon_greedy=self.config[self.algo]['epsilon_greedy'],
-                            exploration_fraction=self.config[self.algo]['exploration_fraction'],
-                            exploration_final_eps=self.config[self.algo]['exploration_final_eps'],
-                            num_actions_pad=self.config[self.algo]['num_actions_pad'],
-                            learning_starts=self.config[self.algo]['learning_starts'],
-                            target_network_update_freq=self.config[self.algo]['target_network_update_freq'],
-                            prioritized_replay=self.config[self.algo]['prioritized_replay'],
-                            train_freq=self.config[self.algo]['train_freq'],
-                            log_dir=self.model_dir,
+                            learning_rate=self.config[self.algo]['learning_rate'],
                             tensorboard_log=tensorboard_file)
         elif self.algo == 'DQN':
             if self.load_dir:
@@ -182,12 +162,19 @@ class SBPolicy:
                             gamma=self.config['discount_factor'],
                             batch_size=self.config[self.algo]['batch_size'],
                             prioritized_replay=self.config[self.algo]['prioritized_replay'],
-                            log_dir=self.model_dir,
+                            tensorboard_log=tensorboard_file)
+        elif self.algo == "DDPG":
+            param_noise = AdaptiveParamNoiseSpec()
+            model = sb.DDPG(ddpgMlp,
+                            self.env,
+                            verbose=2,
+                            gamma=self.config['discount_factor'],
+                            param_noise=param_noise,
                             tensorboard_log=tensorboard_file)
         try:
             model.learn(total_timesteps=int(self.config[self.algo]['total_timesteps']), 
                         callback=[TensorboardCallback(self.env, tensorboard_file, self.algo, self.log_freq, self.model_dir), 
-                                  eval_callback, checkpoint_callback])
+                                   eval_callback])
         except KeyboardInterrupt:
             pass
 
@@ -234,7 +221,6 @@ class SBPolicy:
                     learning_starts=self.config[self.algo]['learning_starts'],
                     target_network_update_freq=self.config[self.algo]['target_network_update_freq'],
                     prioritized_replay=self.config[self.algo]['prioritized_replay'],
-                    log_dir=self.model_dir,
                     tensorboard_log=None)
         model.load_parameters(usable_params, exact_match=False)
         return model

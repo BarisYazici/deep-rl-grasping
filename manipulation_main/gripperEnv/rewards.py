@@ -12,8 +12,9 @@ class Reward:
         self._terminal_reward = config['terminal_reward']
         self._grasp_reward = config['grasp_reward']
         self._delta_z_scale = config['delta_z_scale']
+        self._lift_success = config.get('lift_success', self._terminal_reward)
         self._time_penalty = config.get('time_penalty', False)
-
+        self._table_clearing = config.get('table_clearing', False)
         self.lift_dist = None
 
         # Placeholders
@@ -106,9 +107,25 @@ class ShapedCustomReward(Reward):
                 self._lifting = True
 
             if robot_height - self._start_height > self.lift_dist:
-                # Object was lifted by the desired amount
-                return self._terminal_reward, robot.RobotEnv.Status.SUCCESS
+                if self._table_clearing:
+                    # Object was lifted by the desired amount
+                    grabbed_obj = self._robot.find_highest()
+                    if grabbed_obj is not -1:
+                        self._robot.remove_model(grabbed_obj)
+                    
+                    # Multiple object grasping
+                    # grabbed_objs = self._robot.find_higher(self.lift_dist)
+                    # if grabbed_objs:
+                    #     self._robot.remove_models(grabbed_objs)
 
+                    self._robot.open_gripper()
+                    if self._robot.get_num_body() == 2: 
+                        return self._terminal_reward, robot.RobotEnv.Status.SUCCESS
+                    return self._lift_success, robot.RobotEnv.Status.RUNNING
+                else:
+                    if not self._shaped:
+                        return 1., robot.RobotEnv.Status.SUCCESS
+                    return self._terminal_reward, robot.RobotEnv.Status.SUCCESS
             if self._shaped:
                 # Intermediate rewards for grasping and lifting
                 delta_z = robot_height - self._old_robot_height

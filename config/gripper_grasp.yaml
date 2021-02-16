@@ -1,20 +1,20 @@
 # Robot parameters
 robot:
   model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
-  max_translation: 0.03 #0.01
-  max_yaw_rotation: 0.15 #0.15
+  max_translation: 0.03
+  max_yaw_rotation: 0.15
   max_force: 100
   discrete: False
   step_size: 0.01 #For discrete action space
   yaw_step: 0.1
   num_actions_pad: 2
   # include_robot_height: True
-  
+
 
 # Experimental setup parameters
 scene:
-  # scene_type: "OnTable"
-  scene_type: "OnFloor"
+  scene_type: "OnTable" # OnTable scene is easier for the table clearing task
+  # scene_type: "OnFloor"
   data_set: random_urdfs
 
 # Simulation parameters
@@ -40,9 +40,11 @@ reward:
   custom: True
   shaped: True
   terminal_reward: 10000.
+  # lift_success: 1000.
   grasp_reward: 100.
   delta_z_scale: 1000.
-  time_penalty: 200. #1
+  time_penalty: 200.
+  table_clearing: False # False - picks only one item. With True the episode terminates after each objects are cleared. Table clearing works better with the curriculum parameter max object [1, 5] 
 
 # Workspace curriculum parameters
 curriculum:
@@ -50,10 +52,10 @@ curriculum:
   n_steps: 8
   success_threshold: 0.7
   window_size: 1000
-  extent: [0.01, 0.1] #[0.01, 0.1]
-  robot_height: [0.15, 0.25] #[0.15, 0.25] #[0.18, 0.28]
-  lift_dist: [0.01, 0.1]
-  max_objects: [3, 5] #[3, 5]
+  extent: [0.01, 0.1]
+  robot_height: [0.15, 0.25]
+  lift_dist: [0.015, 0.1]
+  max_objects: [3, 5] # Change to [1, 5] when table clearing task is set
   min_objects: [1, 1]
   # workspace: [0.2, 1]
   # work_height: [0.2, 1]
@@ -64,12 +66,12 @@ skip_empty_initial_state: True
 # Use simplified problem formulation
 simplified: False
 # Depth + Actuator
-depth_observation: false
+depth_observation: True
 # RGB + Depth + Actuator
-full_observation: true
+full_observation: False
 # Markov decision process parameters
 discount_factor: 0.99
-time_horizon: 150
+time_horizon: 200
 # normalize the input and rewards
 normalize: True
 
@@ -77,17 +79,18 @@ SAC:
   max_iters: 400
   batch_size: 64
   layers: [64, 64]
-  buffer_size: 1000000 
+  buffer_size: 1000000
   step_size: 0.0003
   tensorboard_logs: !!null
-  total_timesteps: 5000000
+  total_timesteps: 2000000
   save_dir: sac2m_depth_obs
 
 PPO:
-  learning_rate: 0.001
+  learning_rate: 0.0003
+  layers: [64, 64]
   save_dir: ppo_5m
-  tensorboard_logs: tensorboard_logs/ppo_5m
-  total_timesteps: 1000000
+  tensorboard_logs: !!null
+  total_timesteps: 5000000
   n_steps: 2000
 
 DQN:
@@ -98,26 +101,12 @@ DQN:
   total_timesteps: 4000000
   prioritized_replay: True
 
-# Training parameters
-TRPO:
-  max_iters: 400
-  batch_size: 64 #20000
-  step_size: 0.001 #0.01
-  tensorboard_logs: tensorboard_logs/trpo_1m
-  save_dir: trpo_1m
-  total_timesteps: 5000000
-
-DDPG:
-  save_dir: DDPG
-  tensorboard_logs: DDPG
-  total_timesteps: 2000000
-
 BDQ:
   learning_rate: 0.0001
   prioritized_replay: False #True 
   batch_size: 64
-  layers: [[64, 64], [32], [32]] #[[512, 256], [128], [128]] 
-  buffer_size: 50000 #1000000
+  layers: [[64, 64], [32], [32]]
+  buffer_size: 1000000
   epsilon_greedy: true
   exploration_fraction: 0.3 # 0.1
   exploration_final_eps: 0.1 #0.02
@@ -125,5 +114,5 @@ BDQ:
   learning_starts: 1000
   target_network_update_freq: 1000
   total_timesteps: 4000000
-  tensorboard_logs: !!null
+  tensorboard_logs: !!null #tensorboard_logs/BDQ1mSimplified
   save_dir: BDQ1mSimplified

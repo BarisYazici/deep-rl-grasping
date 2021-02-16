@@ -127,7 +127,7 @@ class RobotEnv(World):
         Returns:
             Observation of the initial state.
         """
-        
+        self.endEffectorAngle = 0.
         start_pos = [0., 0., self._initial_height]
         self._model = self.add_model(self.model_path, start_pos, self._init_ori)
         self._joints = self._model.joints
@@ -238,8 +238,9 @@ class RobotEnv(World):
         target_pos[1] *= -1
         target_pos[2] = -1 * (target_pos[2] - self._initial_height)
 
-        _, _, yaw = transform_utils.euler_from_quaternion(target_orn)
-        yaw *= -1
+        # _, _, yaw = transform_utils.euler_from_quaternion(target_orn)
+        # yaw *= -1
+        yaw = target_orn
         comp_pos = np.r_[target_pos, yaw]
 
         for i, joint in enumerate(self.main_joints):
@@ -256,9 +257,9 @@ class RobotEnv(World):
         T_old_to_new = transformations.compose_matrix(
             angles=[0., 0., yaw_rotation], translate=translation)
         T_world_new = np.dot(T_world_old, T_old_to_new)
-
+        self.endEffectorAngle += yaw_rotation
         target_pos, target_orn = transform_utils.to_pose(T_world_new)
-        self.absolute_pose(target_pos, target_orn)
+        self.absolute_pose(target_pos, self.endEffectorAngle)
 
     def close_gripper(self):
         self.gripper_close = True

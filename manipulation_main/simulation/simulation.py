@@ -56,15 +56,6 @@ class World(gym.Env):
         model.load_model(path, start_pos, start_orn, scaling)
         self.models.append(model)
         return model
-    
-    def remove_model(self, model):
-        """Remove a model from the world.
-
-        Args:
-            model: A reference to a model.
-        """
-        self.physics_client.removeBody(model.model_id)
-        self.models.remove(model)
 
     def step_sim(self):
         """Advance the simulation by one step."""
@@ -97,8 +88,6 @@ class World(gym.Env):
 
     def close(self):
         self.physics_client.disconnect()
-        # cuda.select_device(0)
-        # cuda.close()
     
     def seed(self, seed=None, evaluate=False, validate=False):
         if evaluate:
@@ -111,7 +100,52 @@ class World(gym.Env):
             self._rng, seed = seeding.np_random(seed)
         return self._rng
 
+    def find_highest(self):
+        highest = -float('inf')
+        model_id = -1
+        for obj in self.models[1:len(self.models)-1]:
+            if obj:
+                pos, _ = obj.getBase()
+                if pos[2] > highest: 
+                    highest = pos[2]
+                    model_id = obj.model_id
+        return model_id
+
+    def find_higher(self, lift_dist):
+        #TODO make robust
+        #FIXME not working with small lift distance
+        if self.scene_type == "OnTable":
+            thres_height = self.models[2].getBase()[0][2]
+        else:
+            thres_height = self.models[0].getBase()[0][2]
+
+        grabbed_objs = []
+        for obj in self.models[1:len(self.models)-1]:
+            if obj:
+                pos, _ = obj.getBase()
+                # print("height", pos[2])
+                # print("threshold", thres_height + lift_dist)
+                if pos[2] > (thres_height + lift_dist):
+                    grabbed_objs.append(obj.model_id)
+        return grabbed_objs
+
     def reset_model(self):
         """ Adds the robot model and resets the episode parameters.
             Should be implemented by every subclass."""
         raise NotImplementedError
+
+    def remove_model(self, model_id):
+        self.physics_client.removeBody(model_id)
+        self.models[model_id] = False
+
+    def remove_models(self, model_ids):
+        for model_id in model_ids:
+            self.physics_client.removeBody(model_id)
+            self.models[model_id] = False
+
+    def get_num_body(self):
+        self.physics_client.syncBodyInfo()
+        if self.scene_type == "OnTable":
+            return self.physics_client.getNumBodies() - 2
+        else:
+            return self.physics_client.getNumBodies()
