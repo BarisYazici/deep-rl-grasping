@@ -38,6 +38,9 @@ class Model(object):
         """Return the pose of the model base."""
         pos, orn, _, _, _, _ = self._physics_client.getLinkState(self.model_id, 3)
         return (pos, orn)
+    
+    def getBase(self):
+        return self._physics_client.getBasePositionAndOrientation(self.model_id)
 
 class _Link(object):
     def __init__(self, physics_client, model_id, link_id):

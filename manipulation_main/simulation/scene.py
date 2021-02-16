@@ -35,7 +35,7 @@ class OnTable(BaseScene):
 class OnFloor(BaseScene):
     """Curriculum paper setup."""
     def reset(self):
-        self.plane_path = 'plane/planeRL.urdf'
+        self.plane_path = 'plane.urdf'
         plane_urdf = os.path.join("models", self.plane_path)
         self._world.add_model(plane_urdf, [0., 0., -0.196], [0., 0., 0., 1.])
         # Sample random objects

@@ -1,0 +1,65 @@
+BDQ:
+  batch_size: 64
+  buffer_size: 1000000
+  epsilon_greedy: true
+  exploration_final_eps: 0.1
+  exploration_fraction: 0.3
+  layers:
+  - [64, 64]
+  - [32]
+  - [32]
+  learning_rate: 0.0001
+  learning_starts: 1000
+  num_actions_pad: 33
+  prioritized_replay: false
+  save_dir: BDQ1mSimplified
+  target_network_update_freq: 1000
+  tensorboard_logs: null
+  total_timesteps: 4000000
+DDPG: {save_dir: DDPG, tensorboard_logs: DDPG, total_timesteps: 2000000}
+DQN: {batch_size: 32, learning_rate: 0.001, prioritized_replay: true, save_dir: DQN4mFull,
+  tensorboard_logs: null, total_timesteps: 4000000}
+PPO: {learning_rate: 0.001, n_steps: 2000, save_dir: ppo_5m, tensorboard_logs: tensorboard_logs/ppo_5m,
+  total_timesteps: 1000000}
+SAC:
+  batch_size: 64
+  buffer_size: 2000000
+  layers: [128, 128]
+  max_iters: 400
+  save_dir: SAC_real_2m_buffer_128
+  step_size: 0.0003
+  tensorboard_logs: null
+  total_timesteps: 10000000
+TRPO: {batch_size: 64, max_iters: 400, save_dir: trpo_1m, step_size: 0.001, tensorboard_logs: tensorboard_logs/trpo_1m,
+  total_timesteps: 5000000}
+algorithm: sac
+curriculum:
+  extent: [0.01, 0.1]
+  init_lambda: 0.0
+  lift_dist: [0.015, 0.1]
+  max_objects: [1, 5]
+  min_objects: [1, 1]
+  n_steps: 8
+  robot_height: [0.15, 0.25]
+  success_threshold: 0.7
+  window_size: 1000
+depth_observation: true
+discount_factor: 0.99
+full_observation: false
+normalize: true
+reward: {custom: true, delta_z_scale: 1000.0, grasp_reward: 100.0, shaped: true, terminal_reward: 10000.0,
+  time_penalty: 200.0}
+robot: {discrete: false, max_force: 100, max_translation: 0.03, max_yaw_rotation: 0.15,
+  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf, num_actions_pad: 2,
+  step_size: 0.01, yaw_step: 0.1}
+scene: {data_set: random_urdfs, scene_type: OnTable}
+sensor:
+  camera_info: config/camera_info.yaml
+  encoder_dir: encoder_files/new_gripper_encoder
+  randomize: {focal_length: 4, optical_center: 2, rotation: 0.0349, translation: 0.002}
+  transform: config/camera_transform.yaml
+  visualize: false
+simplified: false
+simulation: {real_time: false, visualize: false}
+skip_empty_initial_state: true
+time_horizon: 200
