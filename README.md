@@ -5,7 +5,7 @@ Master's thesis [PDF](https://github.com/BarisYazici/masters_thesis/blob/master/
 
 ### Prerequisites
 
-Install anaconda or virtualenv of anykind. Before running the setup.sh script, start a clean conda environment
+Install anaconda. Start a clean conda environment.
 
 ```
 conda create -n grasp_env python=3.6
@@ -14,12 +14,10 @@ conda activate grasp_env
 
 ## Installation
 
-Repository involves the stable baselines fork as a git submodule. First the submodule needs to be initiated and updated. 
-
-Below given script handles submodule activation and package and dependencies installation. 
+Use pip to install the dependencies. If you have a gpu you might need to install tensorflow based on your system requirements.
 
 ```
-./setup.sh
+pip install -e .
 ```
 
 ## Run Models
@@ -62,14 +60,6 @@ To run the gripperEnv related test use
 ```
 pytest tests_gripper
 ```
-
-To run the bdq_sb related test use
-
-```
-pytest bdq_sb
-```
-
-At the moment both tests can't be run at the same time
 
 * **Domain and Scene Transfer**
 
