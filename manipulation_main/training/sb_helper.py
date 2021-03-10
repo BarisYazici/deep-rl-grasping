@@ -197,33 +197,6 @@ class SBPolicy:
                     tensorboard_log=tensorboard_file)
         model.load_parameters(usable_params, exact_match=False)
         return model
-
-    
-    def load_params_bdq(self):
-        usable_params = {}
-        print("Loading the model")
-        model_load = sb.BDQ.load(self.load_dir)
-        pars = model_load.get_parameters()
-        for key, value in pars.items():
-            if not 'action_value' in key and '2' in key:
-                usable_params.update({key:value})
-        model = sb.BDQ(MlpActPolicy, 
-                    self.env, 
-                    verbose=2,
-                    policy_kwargs = {"layers": self.config[self.algo]['layers']},
-                    gamma=self.config['discount_factor'],
-                    batch_size=self.config[self.algo]['batch_size'],
-                    buffer_size=self.config[self.algo]['buffer_size'],
-                    epsilon_greedy=self.config[self.algo]['epsilon_greedy'],
-                    exploration_fraction=self.config[self.algo]['exploration_fraction'], 
-                    exploration_final_eps=self.config[self.algo]['exploration_final_eps'], 
-                    num_actions_pad=self.config[self.algo]['num_actions_pad'],
-                    learning_starts=self.config[self.algo]['learning_starts'],
-                    target_network_update_freq=self.config[self.algo]['target_network_update_freq'],
-                    prioritized_replay=self.config[self.algo]['prioritized_replay'],
-                    tensorboard_log=None)
-        model.load_parameters(usable_params, exact_match=False)
-        return model
     
     def save(self, model, model_dir):
         if '/' in model_dir:

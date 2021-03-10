@@ -128,8 +128,8 @@
         <limit>
           <!-- <lower>-0.5</lower>
           <upper>10</upper> -->
-          <lower>-3.14</lower>
-          <upper>3.14</upper>          
+          <!-- <lower>-3.14</lower>
+          <upper>3.14</upper> -->
           <effort>1</effort>
           <velocity>1</velocity>
         </limit>

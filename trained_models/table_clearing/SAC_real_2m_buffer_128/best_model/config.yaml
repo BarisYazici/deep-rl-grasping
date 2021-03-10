@@ -50,7 +50,7 @@ normalize: true
 reward: {custom: true, delta_z_scale: 1000.0, grasp_reward: 100.0, shaped: True, terminal_reward: 10000.0,
   time_penalty: 200.0, table_clearing: True}
 robot: {discrete: false, max_force: 100, max_translation: 0.03, max_yaw_rotation: 0.15,
-  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf, num_actions_pad: 2,
+  model_path: models/kuka_iiwa/kuka_with_gripper.sdf , num_actions_pad: 2,
   step_size: 0.01, yaw_step: 0.1}
 scene: {data_set: random_urdfs, scene_type: OnTable}
 sensor:

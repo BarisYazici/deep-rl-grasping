@@ -1,6 +1,6 @@
 # Robot parameters
 robot:
-  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
+  model_path: models/kuka_iiwa/kuka_with_gripper.sdf
   max_translation: 0.03
   max_yaw_rotation: 0.15
   max_force: 100
@@ -13,7 +13,7 @@ robot:
 
 # Experimental setup parameters
 scene:
-  scene_type: "OnTable" # OnTable scene is easier for the table clearing task
+  scene_type: "OnTable"
   # scene_type: "OnFloor"
   data_set: random_urdfs
 
@@ -44,7 +44,7 @@ reward:
   grasp_reward: 100.
   delta_z_scale: 1000.
   time_penalty: 200.
-  table_clearing: False # False - picks only one item. With True the episode terminates after each objects are cleared. Table clearing works better with the curriculum parameter max object [1, 5] 
+  table_clearing: True # False # picks only one item. With True the episode terminates after each objects are cleared. Table clearing works better with the curriculum parameter max object [1, 5] 
 
 # Workspace curriculum parameters
 curriculum:
@@ -53,15 +53,13 @@ curriculum:
   success_threshold: 0.7
   window_size: 1000
   extent: [0.01, 0.1]
-  robot_height: [0.15, 0.25]
-  lift_dist: [0.015, 0.1]
-  max_objects: [3, 5] # Change to [1, 5] when table clearing task is set
+  robot_height: [0.17, 0.27] #[0.15, 0.25]
+  lift_dist: [0.01, 0.1]
+  max_objects: [1, 5]
   min_objects: [1, 1]
-  # workspace: [0.2, 1]
-  # work_height: [0.2, 1]
 
 # Generate new initial states until at least on object is within the FOV
-skip_empty_initial_state: True
+skip_empty_initial_state: False
 
 # Use simplified problem formulation
 simplified: False
@@ -71,7 +69,7 @@ depth_observation: True
 full_observation: False
 # Markov decision process parameters
 discount_factor: 0.99
-time_horizon: 200
+time_horizon: 300
 # normalize the input and rewards
 normalize: True
 
@@ -101,18 +99,7 @@ DQN:
   total_timesteps: 4000000
   prioritized_replay: True
 
-BDQ:
-  learning_rate: 0.0001
-  prioritized_replay: False #True 
-  batch_size: 64
-  layers: [[64, 64], [32], [32]]
-  buffer_size: 1000000
-  epsilon_greedy: true
-  exploration_fraction: 0.3 # 0.1
-  exploration_final_eps: 0.1 #0.02
-  num_actions_pad: 33
-  learning_starts: 1000
-  target_network_update_freq: 1000
-  total_timesteps: 4000000
-  tensorboard_logs: !!null #tensorboard_logs/BDQ1mSimplified
-  save_dir: BDQ1mSimplified
+DDPG:
+  save_dir: DDPG
+  tensorboard_logs: DDPG
+  total_timesteps: 2000000

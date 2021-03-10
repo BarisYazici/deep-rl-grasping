@@ -15,11 +15,11 @@ robot:
   model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
   max_translation: 0.03 # 0.01
   max_yaw_rotation: 0.15 # 0.15
-  discrete: True
+  discrete: False
   step_size: 0.01 #For discrete action space
   yaw_step: 0.15
   max_force: 100
-  num_actions_pad: 33
+  num_actions_pad: 4
 
 # Camera sensor parameters
 sensor:
@@ -78,11 +78,11 @@ TRPO:
 SAC:
   max_iters: 400
   batch_size: 64
-  buffer_size: 50000
+  buffer_size: 1000000 #50000
   step_size: 0.0003
   layers: [64, 64]
   tensorboard_logs: !!null
-  total_timesteps: 1000000
+  total_timesteps: 4000000
   save_dir: sac_3e3_1m
 
 PPO:
@@ -114,7 +114,8 @@ BDQ:
   epsilon_greedy: true
   exploration_fraction: 0.1 # 0.1
   exploration_final_eps: 0.1 #0.02
-  num_actions_pad: 16
+  num_actions_pad: 4
+  train_freq: 1
   learning_starts: 1000
   target_network_update_freq: 1000
   total_timesteps: 4000000

@@ -9,7 +9,6 @@ import sb_helper
 import tensorflow as tf
 import manipulation_main
 
-from stable_baselines import SAC
 from stable_baselines.common.callbacks import BaseCallback, EvalCallback
 from stable_baselines.common.policies import MlpPolicy
 from stable_baselines.common.vec_env import DummyVecEnv, VecNormalize

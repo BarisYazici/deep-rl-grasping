@@ -81,7 +81,7 @@ class RGBDSensor:
 
     def get_state(self):
         """Render an RGBD image and mask from the current viewpoint."""
-        h_world_robot = transform_utils.from_pose(*self._robot.get_pose())
+        h_world_robot = transform_utils.from_pose(*self._robot.get_pose_cam())
         h_camera_world = np.linalg.inv(
             np.dot(h_world_robot, self._h_robot_camera))
         rgb, depth, mask = self.camera.render_images(h_camera_world)

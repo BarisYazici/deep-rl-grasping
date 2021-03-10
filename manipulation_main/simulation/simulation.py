@@ -1,14 +1,15 @@
-from enum import Enum
-import pybullet as p
 import time
-import gym
-
-from gym.utils import seeding
+from enum import Enum
 from numpy.random import RandomState
-from manipulation_main.simulation.model import Model
+
+import gym
+from gym.utils import seeding
+
+import pybullet as p
 from manipulation_main.simulation import scene
+from manipulation_main.simulation.model import Model
 from pybullet_utils import bullet_client
-from numba import cuda
+
 
 class World(gym.Env):
 
@@ -39,7 +40,7 @@ class World(gym.Env):
         self._solver_iterations = 150
 
         config = config['simulation']
-        visualize = config.get('visualize', True) 
+        visualize = config.get('visualize', True)
         self._real_time = config.get('real_time', True)
         self.physics_client = bullet_client.BulletClient(
             p.GUI if visualize else p.DIRECT)
@@ -64,7 +65,7 @@ class World(gym.Env):
         self.sim_time += self._time_step
         if self._real_time:
             time.sleep(max(0., self.sim_time -
-                       time.time() + self._real_start_time))
+                           time.time() + self._real_start_time))
 
     def reset_sim(self):
         # self._trigger_event(World.Events.RESET) # Trigger reset func
@@ -73,22 +74,20 @@ class World(gym.Env):
             fixedTimeStep=self._time_step,
             numSolverIterations=self._solver_iterations,
             enableConeFriction=1)
-        self.physics_client.setGravity(0., 0., -9.81)    
+        self.physics_client.setGravity(0., 0., -9.81)
         self.models = []
         self.sim_time = 0.
-
         self._real_start_time = time.time()
-
         self._scene.reset()
 
     def reset_base(self, model_id, pos, orn):
-        self.physics_client.getBasePositionAndOrientation(model_id, 
-                                                          pos, 
+        self.physics_client.getBasePositionAndOrientation(model_id,
+                                                          pos,
                                                           orn)
 
     def close(self):
         self.physics_client.disconnect()
-    
+
     def seed(self, seed=None, evaluate=False, validate=False):
         if evaluate:
             self._validate = validate
@@ -101,30 +100,31 @@ class World(gym.Env):
         return self._rng
 
     def find_highest(self):
+        """ Return only one the highest object that the gripper grasped
+        Does not return multiple objects """
         highest = -float('inf')
         model_id = -1
         for obj in self.models[1:len(self.models)-1]:
             if obj:
-                pos, _ = obj.getBase()
-                if pos[2] > highest: 
+                pos, _ = obj.get_base()
+                if pos[2] > highest:
                     highest = pos[2]
                     model_id = obj.model_id
         return model_id
 
-    def find_higher(self, lift_dist):
-        #TODO make robust
+    def find_higher_objs(self, lift_dist):
+        """ Returns an array of objects grasped by the gripper.
+         It returns multiple objects if the gripper grasps."""
         #FIXME not working with small lift distance
         if self.scene_type == "OnTable":
-            thres_height = self.models[2].getBase()[0][2]
+            thres_height = self.models[2].get_base()[0][2]
         else:
-            thres_height = self.models[0].getBase()[0][2]
+            thres_height = self.models[0].get_base()[0][2]
 
         grabbed_objs = []
         for obj in self.models[1:len(self.models)-1]:
             if obj:
-                pos, _ = obj.getBase()
-                # print("height", pos[2])
-                # print("threshold", thres_height + lift_dist)
+                pos, _ = obj.get_base()
                 if pos[2] > (thres_height + lift_dist):
                     grabbed_objs.append(obj.model_id)
         return grabbed_objs
@@ -147,5 +147,4 @@ class World(gym.Env):
         self.physics_client.syncBodyInfo()
         if self.scene_type == "OnTable":
             return self.physics_client.getNumBodies() - 2
-        else:
-            return self.physics_client.getNumBodies()
+        return self.physics_client.getNumBodies()

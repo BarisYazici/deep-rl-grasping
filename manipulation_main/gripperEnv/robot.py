@@ -1,12 +1,14 @@
 import os
 import time
 import pybullet as p
+from pybullet_utils import bullet_client
 import numpy as np
 import functools
 import gym
 import collections
 from gym import spaces 
 from enum import Enum
+import math
 
 from manipulation_main.common import io_utils
 from manipulation_main.common import transformations
@@ -25,7 +27,6 @@ def _reset(robot, actuator, depth_sensor, skip_empty_states=False):
         actuator.reset()
         _, _, mask = depth_sensor.get_state()
         ok = len(np.unique(mask)) > 2  # plane and gripper are always visible
-
         if not skip_empty_states:
             ok = True
 
@@ -46,7 +47,7 @@ class RobotEnv(World):
     def __init__(self, config, evaluate=False, test=False, validate=False):
         if not isinstance(config, dict):
             config = io_utils.load_yaml(config)
-        
+
         super().__init__(config, evaluate=evaluate, test=test, validate=validate)
         self._step_time = collections.deque(maxlen=10000)
         self.time_horizon = config['time_horizon']
@@ -57,10 +58,33 @@ class RobotEnv(World):
         self.depth_obs = config.get('depth_observation', False)
         self.full_obs = config.get('full_observation', False)
         self._initial_height = 0.3
-        self._init_ori = transformations.quaternion_from_euler(np.pi, 0., 0.)
-        self.main_joints = [0, 1, 2, 3] #FIXME make it better
-        self._left_finger_id = 7
-        self._right_finger_id = 9
+        # self._init_ori = transformations.quaternion_from_euler(np.pi, 0., 0.)
+        
+        ## FOR KUKA ROBOT
+        self._init_ori = [0.000000, 0.000000, 0.000000, 1.000000]
+        self.maxForce = 100.
+        self.fingerAForce = 2
+        self.fingerBForce = 2.5
+        self.fingerTipForce = 2
+        self.useInverseKinematics = 1
+        self.useNullSpace = 0
+        self.useOrientation = 1
+        self.kukaEndEffectorIndex = 6
+        self.kukaGripperIndex = 7
+        #lower limits for null space
+        self.ll = [-.967, -2, -2.96, 0.19, -2.96, -2.09, -3.05]
+        #upper limits for null space
+        self.ul = [.967, 2, 2.96, 2.29, 2.96, 2.09, 3.05]
+        #joint ranges for null space
+        self.jr = [5.8, 4, 5.8, 4, 5.8, 4, 6]
+        #restposes for null space
+        self.rp = [0, 0, 0, 0.5 * math.pi, 0, -math.pi * 0.5 * 0.66, 0]
+        #joint damping coefficents
+        self.jd = [.1] * 14
+        ## END KUKA STUFF
+
+        self._left_finger_id = 13
+        self._right_finger_id = 11
         self._fingers = [self._left_finger_id, self._right_finger_id]
 
         self._model = None
@@ -127,13 +151,20 @@ class RobotEnv(World):
         Returns:
             Observation of the initial state.
         """
-        self.endEffectorAngle = 0.
-        start_pos = [0., 0., self._initial_height]
+        
+        start_pos = [-0.8, 0.0, -0.25]
+        ee_pos = [0., 0., self._initial_height]
+        
+        self.endEffectorAngle = 0
         self._model = self.add_model(self.model_path, start_pos, self._init_ori)
         self._joints = self._model.joints
         self.robot_id = self._model.model_id
         self._left_finger = self._model.joints[self._left_finger_id]
         self._right_finger = self._model.joints[self._right_finger_id]
+        count = 0
+        while abs(self._initial_height - self.get_pose()[0][2]) > 0.01 and count < 50:
+            self.absolute_pose(ee_pos, 0.0)
+            count += 1
 
     def _trigger_event(self, event, *event_args):
         for fn, args, kwargs in self._callbacks[event]:
@@ -157,7 +188,6 @@ class RobotEnv(World):
             self.reset()
 
         self._actuator.step(action)
-
         new_obs = self._observe()
 
         reward, self.status = self._reward_fn(self.obs, action, new_obs)
@@ -172,13 +202,15 @@ class RobotEnv(World):
 
         if done:
             self._trigger_event(RobotEnv.Events.END_OF_EPISODE, self)
-
         self.episode_step += 1
         self.obs = new_obs
         if len(self.curriculum._history) != 0:
             self.sr_mean = np.mean(self.curriculum._history)
         super().step_sim()
-        return self.obs, reward, done, {"is_success":self.status==RobotEnv.Status.SUCCESS, "episode_step": self.episode_step, "episode_rewards": self.episode_rewards, "status": self.status}
+        return self.obs, reward, done, {"is_success":self.status==RobotEnv.Status.SUCCESS,
+                                        "episode_step": self.episode_step,
+                                        "episode_rewards": self.episode_rewards,
+                                        "status": self.status}
 
     def _observe(self):
         if not self.depth_obs and not self.full_obs:
@@ -233,25 +265,71 @@ class RobotEnv(World):
         self.run(0.1)
 
     def absolute_pose(self, target_pos, target_orn):
-        # target_pos = self._enforce_constraints(target_pos)
+        dx = target_pos[0]
+        dy = target_pos[1]
+        dz = target_pos[2]
 
-        target_pos[1] *= -1
-        target_pos[2] = -1 * (target_pos[2] - self._initial_height)
+        #restrict the motion to avoid kinematic singularities
+        if dx > 0.07:
+            dx=0.07
+        if dx < -0.22:
+            dx = -0.22
+        if dy > 0.35:
+            dy = 0.35
+        if dy < -0.2:
+            dy = -0.2
+        # if dz > 0.27:
+        #     dz = 0.27
+        # if dz < 0.123:
+        #     dz = 0.123
+        pos = [dx,dy,dz]
+        orn = self.physics_client.getQuaternionFromEuler([0, -math.pi, 0])
 
-        # _, _, yaw = transform_utils.euler_from_quaternion(target_orn)
-        # yaw *= -1
-        yaw = target_orn
-        comp_pos = np.r_[target_pos, yaw]
+        if (self.useNullSpace == 1):
+            if (self.useOrientation == 1):
+                jointPoses = self.physics_client.calculateInverseKinematics(self.robot_id, self.kukaEndEffectorIndex, pos,
+                                                          orn, self.ll, self.ul, self.jr, self.rp)
+            else:
+                jointPoses = self.physics_client.calculateInverseKinematics(self.robot_id,
+                                                        self.kukaEndEffectorIndex,
+                                                        pos,
+                                                        lowerLimits=self.ll,
+                                                        upperLimits=self.ul,
+                                                        jointRanges=self.jr,
+                                                        restPoses=self.rp)
+        else:
+            if (self.useOrientation == 1):
+                jointPoses = self.physics_client.calculateInverseKinematics(self.robot_id,
+                                                            self.kukaEndEffectorIndex,
+                                                            pos,
+                                                            orn,
+                                                            jointDamping=self.jd)
+            else:
+                jointPoses = self.physics_client.calculateInverseKinematics(self.robot_id, self.kukaEndEffectorIndex, pos)
 
-        for i, joint in enumerate(self.main_joints):
-            self._joints[joint].set_position(comp_pos[i])
-        
+        for i in range(self.kukaEndEffectorIndex):
+            self.physics_client.setJointMotorControl2(bodyUniqueId=self.robot_id,
+                                    jointIndex=i,
+                                    controlMode=self.physics_client.POSITION_CONTROL,
+                                    targetPosition=jointPoses[i],
+                                    targetVelocity=0,
+                                    force=self.maxForce,
+                                    positionGain=0.3,
+                                    velocityGain=1)
+
+        self.physics_client.setJointMotorControl2(self.robot_id,
+                                self.kukaGripperIndex,
+                                self.physics_client.POSITION_CONTROL,
+                                targetPosition=target_orn,
+                                force=self.maxForce)
         self.run(0.1)
 
     def relative_pose(self, translation, yaw_rotation):
         pos, orn = self._model.get_pose()
         _, _, yaw = transform_utils.euler_from_quaternion(orn)
         #Calculate transformation matrices
+        translation[0] = -translation[0]
+        translation[1] = -translation[1]
         T_world_old = transformations.compose_matrix(
             angles=[np.pi, 0., yaw], translate=pos)
         T_old_to_new = transformations.compose_matrix(
@@ -259,6 +337,8 @@ class RobotEnv(World):
         T_world_new = np.dot(T_world_old, T_old_to_new)
         self.endEffectorAngle += yaw_rotation
         target_pos, target_orn = transform_utils.to_pose(T_world_new)
+        _, _, yaw = transform_utils.euler_from_quaternion(target_orn)
+        self.endEffectorAngle += yaw_rotation
         self.absolute_pose(target_pos, self.endEffectorAngle)
 
     def close_gripper(self):
@@ -287,6 +367,7 @@ class RobotEnv(World):
     
     def get_gripper_width(self):
         """Query the current opening width of the gripper."""
+
         left_finger_pos = 0.05 - self._left_finger.get_position()
         right_finger_pos = 0.05 - self._right_finger.get_position()
 
@@ -295,9 +376,13 @@ class RobotEnv(World):
     def object_detected(self, tol=0.005):
         """Grasp detection by checking whether the fingers stalled while closing."""
         return self._target_joint_pos == 0.05 and self.get_gripper_width() > tol
-
+    
     def get_pose(self):
         return self._model.get_pose()
+
+    def get_pose_cam(self):
+        return self._model.get_pose_cam()
+
 
     def is_simplified(self):
         return self._simplified

@@ -119,7 +119,7 @@ class ShapedCustomReward(Reward):
                     #     self._robot.remove_models(grabbed_objs)
 
                     self._robot.open_gripper()
-                    if self._robot.get_num_body() == 2: 
+                    if self._robot.get_num_body() <= 2: 
                         return self._terminal_reward, robot.RobotEnv.Status.SUCCESS
                     return self._lift_success, robot.RobotEnv.Status.RUNNING
                 else:
