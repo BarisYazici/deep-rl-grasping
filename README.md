@@ -92,6 +92,17 @@ pytest tests_gripper
 
 * **Baris Yazici** - *Initial work* - [BarisYazici](https://github.com/BarisYazici)
 
+## Citing the Project
+
+To cite the master's thesis:
+
+@MastersThesis{Yazici2020,
+    author     =     {Yazici Baris},
+    title     =     {{Branch Dueling Deep Q-Networks for Robotics Applications}},
+    school     =     {Technical University of Munich},
+    year     =     {2020},
+    howpublished = {\url{https://github.com/BarisYazici/tum_masters_thesis}}
+}
 
 ## License
 
