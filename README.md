@@ -95,7 +95,7 @@ pytest tests_gripper
 ## Citing the Project
 
 To cite the master's thesis:
-
+```
 @MastersThesis{Yazici2020,
     author     =     {Yazici Baris},
     title     =     {{Branch Dueling Deep Q-Networks for Robotics Applications}},
@@ -103,7 +103,7 @@ To cite the master's thesis:
     year     =     {2020},
     howpublished = {\url{https://github.com/BarisYazici/tum_masters_thesis}}
 }
-
+```
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
