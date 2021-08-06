@@ -8,7 +8,6 @@ from numpy.random import RandomState
 from manipulation_main.simulation.model import Model
 from manipulation_main.simulation import scene
 from pybullet_utils import bullet_client
-from numba import cuda
 
 class World(gym.Env):
 
@@ -73,7 +72,7 @@ class World(gym.Env):
             fixedTimeStep=self._time_step,
             numSolverIterations=self._solver_iterations,
             enableConeFriction=1)
-        self.physics_client.setGravity(0., 0., -9.81)    
+        self.physics_client.setGravity(0., 0., -9.81)   
         self.models = []
         self.sim_time = 0.
 

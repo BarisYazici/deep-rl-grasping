@@ -1,0 +1,141 @@
+ <joint name='x_axis' type='prismatic'>
+        <parent>world</parent>
+        <child>x_link</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <!-- <lower>-0.224</lower>
+            <upper>1.158</upper> -->
+            <lower>-10</lower>
+            <upper>10</upper>
+            <effort>1</effort>
+            <velocity>1</velocity>
+          </limit>
+          <dynamics>
+            <damping>0</damping>
+            <friction>0</friction>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+    </joint>
+
+    <link name="x_link">
+      <inertial>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <mass value="0"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
+    </link>
+
+    
+    <joint name='y_axis' type='prismatic'>
+      <parent>x_link</parent>
+      <child>y_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-10</lower>
+          <upper>10</upper>
+          <!-- <lower>-0.5</lower>
+          <upper>0.5</upper> -->
+          <effort>1</effort>
+          <velocity>1</velocity>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <link name="y_link">
+      <inertial>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <mass value="0"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
+    </link>
+
+
+    <joint name='z_axis' type='prismatic'>
+      <parent>y_link</parent>
+      <child>z_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <!-- <lower>-0.3</lower>
+          <upper>0.3</upper> -->
+          <lower>-10</lower>
+          <upper>10</upper>
+          <effort>1</effort>
+          <velocity>1</velocity>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name="z_link">
+      <inertial>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <mass value="0"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
+    </link>
+
+    <joint name='base_joint' type='revolute'>
+      <parent>z_link</parent>
+      <child>panda_link7</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <!-- <lower>-0.5</lower>
+          <upper>10</upper> -->
+          <lower>-3.14</lower>
+          <upper>3.14</upper>          
+          <effort>1</effort>
+          <velocity>1</velocity>
+        </limit>
+        <dynamics>
+          <damping>0</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+
+  <!-- <link name="panda_link9">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+  <joint name="panda_joint9" type="prismatic">
+    <origin rpy="0 0 0" xyz="0 0 0.107"/>
+    <parent link="panda_link8"/>
+    <child link="panda_link9"/>
+    <!-- <axis xyz="0 0 0"/> -->
+    <axis xyz="0 1 0"/>
+  </joint>
+  <link name="panda_link10">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+  <joint name="panda_joint10" type="prismatic">
+    <origin rpy="0 0 0" xyz="0 0 0.107"/>
+    <parent link="panda_link9"/>
+    <child link="panda_link10"/>
+    <!-- <axis xyz="0 0 0"/> -->
+    <axis xyz="0 0 1"/>
+  </joint> -->

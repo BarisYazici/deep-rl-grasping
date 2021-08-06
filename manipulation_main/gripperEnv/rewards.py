@@ -100,7 +100,6 @@ class ShapedCustomReward(Reward):
         position, _ = self._robot.get_pose()
         robot_height = position[2]
         reward = 0.
-
         if self._robot.object_detected():
             if not self._lifting:
                 self._start_height = robot_height

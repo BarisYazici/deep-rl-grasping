@@ -56,11 +56,11 @@ class RobotEnv(World):
         self._simplified = config['simplified']
         self.depth_obs = config.get('depth_observation', False)
         self.full_obs = config.get('full_observation', False)
-        self._initial_height = 0.3
+        self._initial_height = 0.1
         self._init_ori = transformations.quaternion_from_euler(np.pi, 0., 0.)
         self.main_joints = [0, 1, 2, 3] #FIXME make it better
-        self._left_finger_id = 7
-        self._right_finger_id = 9
+        self._left_finger_id = 6
+        self._right_finger_id = 7
         self._fingers = [self._left_finger_id, self._right_finger_id]
 
         self._model = None
@@ -155,7 +155,6 @@ class RobotEnv(World):
         """
         if self._model is None:
             self.reset()
-
         self._actuator.step(action)
 
         new_obs = self._observe()
@@ -263,7 +262,8 @@ class RobotEnv(World):
 
     def close_gripper(self):
         self.gripper_close = True
-        self._target_joint_pos = 0.05
+        # self._target_joint_pos = 0.05
+        self._target_joint_pos = -0.05
         self._left_finger.set_position(self._target_joint_pos)
         self._right_finger.set_position(self._target_joint_pos)
 
@@ -271,7 +271,8 @@ class RobotEnv(World):
 
     def open_gripper(self):
         self.gripper_close = False
-        self._target_joint_pos = 0.0
+        # self._target_joint_pos = 0.0
+        self._target_joint_pos = 0.05
         self._left_finger.set_position(self._target_joint_pos)
         self._right_finger.set_position(self._target_joint_pos)
 
@@ -287,17 +288,27 @@ class RobotEnv(World):
     
     def get_gripper_width(self):
         """Query the current opening width of the gripper."""
-        left_finger_pos = 0.05 - self._left_finger.get_position()
-        right_finger_pos = 0.05 - self._right_finger.get_position()
+        # left_finger_pos = 0.05 - self._left_finger.get_position()
+        # right_finger_pos = 0.05 - self._right_finger.get_position()
+        if self._target_joint_pos == 0.05:
+            left_finger_pos = 0.01 + self._left_finger.get_position()
+            right_finger_pos = 0.01 + self._right_finger.get_position()
+        else:
+            left_finger_pos = self._left_finger.get_position()
+            right_finger_pos = self._right_finger.get_position()
+        
 
         return left_finger_pos + right_finger_pos
 
     def object_detected(self, tol=0.005):
         """Grasp detection by checking whether the fingers stalled while closing."""
-        return self._target_joint_pos == 0.05 and self.get_gripper_width() > tol
+        return self._target_joint_pos == -0.05 and self.get_gripper_width() > tol
 
     def get_pose(self):
         return self._model.get_pose()
+
+    def get_pose_cam(self):
+        return self._model.get_pose_cam()
 
     def is_simplified(self):
         return self._simplified

@@ -55,7 +55,7 @@ def _run_episode_debug(task, agent, stochastic):
         
         position, _ = task.get_pose()
         robot_height = position[2]
-
+        done = False
         # logging.debug('Action: %s', action)
         # logging.debug('Reward: %s\n', reward)
 

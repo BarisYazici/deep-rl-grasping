@@ -36,9 +36,14 @@ class Model(object):
 
     def get_pose(self):
         """Return the pose of the model base."""
-        pos, orn, _, _, _, _ = self._physics_client.getLinkState(self.model_id, 3)
+        pos, orn, _, _, _, _ = self._physics_client.getLinkState(self.model_id, 2)
         return (pos, orn)
     
+    def get_pose_cam(self):
+        """Return the pose of the model base."""
+        pos, orn, _, _, _, _ = self._physics_client.getLinkState(self.model_id, 3)
+        return (pos, orn)
+
     def getBase(self):
         return self._physics_client.getBasePositionAndOrientation(self.model_id)
 

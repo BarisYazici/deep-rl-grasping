@@ -1,6 +1,6 @@
 # Robot parameters
 robot:
-  model_path: models/gripper/wsg50_one_motor_gripper_new.sdf
+  model_path: models/franka_gripper/franka/franka_gripper.urdf #models/gripper/wsg50_one_motor_gripper_new.sdf
   max_translation: 0.03
   max_yaw_rotation: 0.15
   max_force: 100
@@ -13,8 +13,8 @@ robot:
 
 # Experimental setup parameters
 scene:
-  scene_type: "OnTable" # OnTable scene is easier for the table clearing task
-  # scene_type: "OnFloor"
+  # scene_type: "OnTable" # OnTable scene is easier for the table clearing task
+  scene_type: "OnFloor"
   data_set: random_urdfs
 
 # Simulation parameters
