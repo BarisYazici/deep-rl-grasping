@@ -177,7 +177,10 @@ class RobotEnv(World):
         if len(self.curriculum._history) != 0:
             self.sr_mean = np.mean(self.curriculum._history)
         super().step_sim()
-        return self.obs, reward, done, {"is_success":self.status==RobotEnv.Status.SUCCESS, "episode_step": self.episode_step, "episode_rewards": self.episode_rewards, "status": self.status}
+        return self.obs, reward, done, {"is_success":self.status==RobotEnv.Status.SUCCESS,
+                                        "episode_step": self.episode_step,
+                                        "episode_rewards": self.episode_rewards,
+                                        "status": self.status}
 
     def _observe(self):
         if not self.depth_obs and not self.full_obs:
@@ -296,7 +299,6 @@ class RobotEnv(World):
         else:
             left_finger_pos = self._left_finger.get_position()
             right_finger_pos = self._right_finger.get_position()
-        
 
         return left_finger_pos + right_finger_pos
 

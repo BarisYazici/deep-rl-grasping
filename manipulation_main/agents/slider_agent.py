@@ -15,5 +15,4 @@ class SliderAgent:
             self._sliders.append(slider)
 
     def act(self, obs, stochastic=False):
-        print("ACTION", [pybullet.readUserDebugParameter(slider) for slider in self._sliders])
         return [pybullet.readUserDebugParameter(slider) for slider in self._sliders]

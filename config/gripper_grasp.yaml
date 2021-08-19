@@ -53,7 +53,7 @@ curriculum:
   success_threshold: 0.7
   window_size: 1000
   extent: [0.01, 0.1]
-  robot_height: [0.15, 0.25]
+  robot_height: [0.05, 0.15] #[0.15, 0.25]
   lift_dist: [0.015, 0.1]
   max_objects: [3, 5] # Change to [1, 5] when table clearing task is set
   min_objects: [1, 1]
