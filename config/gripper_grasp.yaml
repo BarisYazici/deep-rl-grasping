@@ -1,6 +1,6 @@
 # Robot parameters
 robot:
-  model_path: models/kuka_iiwa/kuka_with_gripper.sdf
+  model_path: models/franka/franka.urdf #models/kuka_iiwa/kuka_with_gripper.sdf
   max_translation: 0.03
   max_yaw_rotation: 0.15
   max_force: 100
@@ -20,7 +20,7 @@ scene:
 # Simulation parameters
 simulation:
   real_time: False
-  visualize: False
+  visualize: True
 
 sensor:
   camera_info: config/camera_info.yaml

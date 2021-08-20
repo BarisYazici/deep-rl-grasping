@@ -9,7 +9,7 @@ from manipulation_main.utils import run_agent
 
 def main(args):
     config = io_utils.load_yaml(args.config)
-    config['time_horizon'] = 150
+    config['time_horizon'] = 15000
     config['simulation']['visualize'] = True
     robot = RobotEnv(config)
     if args.slider:

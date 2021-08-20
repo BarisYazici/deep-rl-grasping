@@ -68,7 +68,7 @@ class RobotEnv(World):
         self.fingerTipForce = 2
         self.useInverseKinematics = 1
         self.useNullSpace = 0
-        self.useOrientation = 1
+        self.useOrientation = 0
         self.kukaEndEffectorIndex = 6
         self.kukaGripperIndex = 7
         #lower limits for null space
@@ -83,8 +83,8 @@ class RobotEnv(World):
         self.jd = [.1] * 14
         ## END KUKA STUFF
 
-        self._left_finger_id = 13
-        self._right_finger_id = 11
+        self._left_finger_id = 9
+        self._right_finger_id = 10
         self._fingers = [self._left_finger_id, self._right_finger_id]
 
         self._model = None
@@ -152,8 +152,8 @@ class RobotEnv(World):
             Observation of the initial state.
         """
         
-        start_pos = [-0.8, 0.0, -0.25]
-        ee_pos = [0., 0., self._initial_height]
+        start_pos = [-0.6, 0.0, -0.3]
+        # ee_pos = [0., 0., self._initial_height]
         
         self.endEffectorAngle = 0
         self._model = self.add_model(self.model_path, start_pos, self._init_ori)
@@ -161,10 +161,11 @@ class RobotEnv(World):
         self.robot_id = self._model.model_id
         self._left_finger = self._model.joints[self._left_finger_id]
         self._right_finger = self._model.joints[self._right_finger_id]
-        count = 0
-        while abs(self._initial_height - self.get_pose()[0][2]) > 0.01 and count < 50:
-            self.absolute_pose(ee_pos, 0.0)
-            count += 1
+        self.close_gripper()
+        # count = 0
+        # while abs(self._initial_height - self.get_pose()[0][2]) > 0.01 and count < 50:
+        #     self.absolute_pose(ee_pos, 0.0)
+        #     count += 1
 
     def _trigger_event(self, event, *event_args):
         for fn, args, kwargs in self._callbacks[event]:
@@ -265,6 +266,7 @@ class RobotEnv(World):
         self.run(0.1)
 
     def absolute_pose(self, target_pos, target_orn):
+        print("TARGET POS: ", target_pos)
         dx = target_pos[0]
         dy = target_pos[1]
         dz = target_pos[2]
@@ -318,13 +320,14 @@ class RobotEnv(World):
                                     velocityGain=1)
 
         self.physics_client.setJointMotorControl2(self.robot_id,
-                                self.kukaGripperIndex,
+                                self.kukaEndEffectorIndex,
                                 self.physics_client.POSITION_CONTROL,
                                 targetPosition=target_orn,
                                 force=self.maxForce)
         self.run(0.1)
 
     def relative_pose(self, translation, yaw_rotation):
+
         pos, orn = self._model.get_pose()
         _, _, yaw = transform_utils.euler_from_quaternion(orn)
         #Calculate transformation matrices
@@ -342,16 +345,18 @@ class RobotEnv(World):
         self.absolute_pose(target_pos, self.endEffectorAngle)
 
     def close_gripper(self):
+
         self.gripper_close = True
-        self._target_joint_pos = 0.05
+        self._target_joint_pos = -0.05
         self._left_finger.set_position(self._target_joint_pos)
         self._right_finger.set_position(self._target_joint_pos)
 
         self.run(0.2)
 
     def open_gripper(self):
+
         self.gripper_close = False
-        self._target_joint_pos = 0.0
+        self._target_joint_pos = 0.05
         self._left_finger.set_position(self._target_joint_pos)
         self._right_finger.set_position(self._target_joint_pos)
 
@@ -359,6 +364,7 @@ class RobotEnv(World):
 
     def _enforce_constraints(self, position):
         """Enforce constraints on the next robot movement."""
+
         if self._workspace:
             position = np.clip(position,
                                self._workspace['lower'],
@@ -367,15 +373,18 @@ class RobotEnv(World):
     
     def get_gripper_width(self):
         """Query the current opening width of the gripper."""
-
-        left_finger_pos = 0.05 - self._left_finger.get_position()
-        right_finger_pos = 0.05 - self._right_finger.get_position()
+        if self._target_joint_pos == 0.05:        
+            left_finger_pos = 0.01 + self._left_finger.get_position()
+            right_finger_pos = 0.01 + self._right_finger.get_position()
+        else:
+            left_finger_pos = self._left_finger.get_position()
+            right_finger_pos = self._right_finger.get_position()
 
         return left_finger_pos + right_finger_pos
 
     def object_detected(self, tol=0.005):
         """Grasp detection by checking whether the fingers stalled while closing."""
-        return self._target_joint_pos == 0.05 and self.get_gripper_width() > tol
+        return self._target_joint_pos == -0.05 and self.get_gripper_width() > tol
     
     def get_pose(self):
         return self._model.get_pose()
