@@ -8,7 +8,6 @@ from numpy.random import RandomState
 from manipulation_main.simulation.model import Model
 from manipulation_main.simulation import scene
 from pybullet_utils import bullet_client
-from numba import cuda
 
 class World(gym.Env):
 
