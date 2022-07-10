@@ -3,7 +3,7 @@ Train robotics model with integrated curriculum learning-based gripper environme
 
 Master's thesis [PDF](https://github.com/BarisYazici/masters_thesis/blob/master/final_report.pdf)
 
-### Prerequisites
+### Prerequisites (CPU)
 
 Install anaconda. Start a clean conda environment.
 
@@ -11,14 +11,34 @@ Install anaconda. Start a clean conda environment.
 conda create -n grasp_env python=3.6
 conda activate grasp_env
 ```
+python manipulation_main/training/train_stable_baselines.py train --config config/gripper_grasp.yaml --algo SAC --model_dir trained_models/SAC_full --timestep 100000 -v
+### Prerequisites (GPU)
+```
+conda create -n grasp_env python=3.6
+conda activate grasp_env
+conda install -c conda-forge cudatoolkit=10.0 cudnn=7.6.5
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
+```
 
-## Installation
+In [setup.py](setup.py) change:
+```
+'tensorflow==1.14.0',
+to
+'tensorflow_gpu==1.14.0',
+```
 
-Use pip to install the dependencies. If you have a gpu you might need to install tensorflow based on your system requirements.
+## Installation 
+
+Use pip to install the dependencies.
 
 ```
 pip install -e .
 ```
+
+If using GPU you can check if it was successful with:
+´´´
+python -c "import tensorflow as tf; print(tf.config.experimental.list_physical_devices('GPU'))"
+´´´
 
 ## Run Models
 train_stable_baselines script provides the functionality of **running** and **training** models.

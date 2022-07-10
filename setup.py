@@ -6,6 +6,8 @@ setup(
     install_requires=[
         'stable-baselines==2.10.1',
         'tensorflow==1.14.0',
+        # for GPU usage comment up and uncomment down
+        # tensorflow_gpu==1.14.0
         'gym==0.19.0',
         'keras==2.2.4',
         'matplotlib==3.3.4',
